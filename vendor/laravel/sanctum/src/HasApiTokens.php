@@ -5,19 +5,22 @@ namespace Laravel\Sanctum;
 use DateTimeInterface;
 use Illuminate\Support\Str;
 
+/**
+ * @template TTokenModel of \Illuminate\Database\Eloquent\Model&\Laravel\Sanctum\Contracts\HasAbilities = \Laravel\Sanctum\PersonalAccessToken
+ */
 trait HasApiTokens
 {
     /**
      * The access token the user is using for the current request.
      *
-     * @var \Laravel\Sanctum\Contracts\HasAbilities
+     * @var TTokenModel
      */
     protected $accessToken;
 
     /**
      * Get the access tokens that belong to model.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany<TTokenModel, $this>
      */
     public function tokens()
     {
@@ -75,7 +78,7 @@ trait HasApiTokens
     /**
      * Get the access token currently associated with the user.
      *
-     * @return \Laravel\Sanctum\Contracts\HasAbilities
+     * @return TTokenModel
      */
     public function currentAccessToken()
     {
@@ -85,7 +88,7 @@ trait HasApiTokens
     /**
      * Set the current access token for the user.
      *
-     * @param  \Laravel\Sanctum\Contracts\HasAbilities  $accessToken
+     * @param  TTokenModel  $accessToken
      * @return $this
      */
     public function withAccessToken($accessToken)

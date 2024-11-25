@@ -4,12 +4,15 @@ namespace Laravel\Sanctum;
 
 use Mockery;
 
+/**
+ * @template TTokenModel of \Illuminate\Database\Eloquent\Model&\Laravel\Sanctum\Contracts\HasAbilities = \Laravel\Sanctum\PersonalAccessToken
+ */
 class Sanctum
 {
     /**
      * The personal access client model class name.
      *
-     * @var string
+     * @var class-string<TTokenModel>
      */
     public static $personalAccessTokenModel = 'Laravel\\Sanctum\\PersonalAccessToken';
 
@@ -75,7 +78,7 @@ class Sanctum
     /**
      * Set the personal access token model name.
      *
-     * @param  string  $model
+     * @param  class-string<TTokenModel>  $model
      * @return void
      */
     public static function usePersonalAccessTokenModel($model)
@@ -108,7 +111,7 @@ class Sanctum
     /**
      * Get the token model class name.
      *
-     * @return string
+     * @return class-string<TTokenModel>
      */
     public static function personalAccessTokenModel()
     {
