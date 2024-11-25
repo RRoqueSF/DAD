@@ -5,6 +5,7 @@ import Games from '@/components/games/Games.vue'
 import HomeView from '@/views/HomeView.vue'
 import Login from '@/components/auth/Login.vue'
 import { useAuthStore } from '@/stores/auth'
+import Chat from '@/components/chats/Chat.vue'
 
 const router = createRouter({
   
@@ -36,7 +37,12 @@ const router = createRouter({
       path: '/games/new',
       name: 'createGame',
       component: GameCreate,
-    },    
+    }, 
+    {
+      path: '/chats',
+      name: 'chat',
+      component: Chat,
+    },       
     {
       path: '/about',
       name: 'about',

@@ -4,16 +4,12 @@ import { RouterView } from 'vue-router'
 import { useGameStore } from '@/stores/game'
 import Toaster from '@/components/ui/toast/Toaster.vue'
 import GlobalAlertDialog from '@/components/common/GlobalAlertDialog.vue'
-
+import Chat from '@/components/chats/Chat.vue'
 import { useAuthStore } from '@/stores/auth'
 const storeGame = useGameStore()
 
 const storeAuth = useAuthStore()
 
-onMounted( () => {
-
-  storeGame.fetchGames()
-})
 
 const alertDialog = useTemplateRef('alert-dialog')
 provide('alertDialog', alertDialog)
@@ -47,6 +43,11 @@ your credentials.`)
           border-none  text-white select-none bg-gray-400 cursor-pointer hover:bg-gray-500"
           activeClass="bg-gray-800 hover:bg-gray-800"> 
                   My Games
+      </RouterLink> 
+      <RouterLink :to="{ name: 'chat'}" class="w-24 h-10 leading-10 text-center rounded-t-xl 
+          border-none  text-white select-none bg-gray-400 cursor-pointer hover:bg-gray-500"
+          activeClass="bg-gray-800 hover:bg-gray-800"> 
+                  Chat
       </RouterLink> 
       <span class="grow"></span>
       <RouterLink v-show="!storeAuth.user" :to="{ name: 'login'}" class="w-24 h-10 leading-10 text-center rounded-t-xl 
