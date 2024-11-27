@@ -48,13 +48,12 @@ export const useAuthStore = defineStore('auth', () => {
     })
 
     const userPhotoUrl = computed(() => {
-        const photoFile = user.value ? user.value.photo_filename ?? '' : ''
+        const photoFile = user.value ? user.value.photoFileName ?? '' : ''
         if (photoFile) {
-            return axios.defaults.baseURL.replace("/api", '') + '/' + photoFile
+        return axios.defaults.baseURL.replaceAll("/api", photoFile)
         }
         return avatarNoneAssetURL
     })
-
     // Private function to clear user data and reset authorization
     const clearUser = () => {
         resetIntervalToRefreshToken()
@@ -65,6 +64,7 @@ export const useAuthStore = defineStore('auth', () => {
         }
 
         const login = async (credentials) => {
+            console.log('login')
             storeError.resetMessages()
             try {
             const responseLogin = await axios.post('auth/login', credentials)
@@ -72,6 +72,7 @@ export const useAuthStore = defineStore('auth', () => {
             localStorage.setItem('token', token.value)
             axios.defaults.headers.common.Authorization = 'Bearer ' + token.value
             const responseUser = await axios.get('users/me')
+            console.log('execucao users/me no login')
             user.value = responseUser.data.data
             repeatRefreshToken()
             router.push({ name:'home' })
@@ -120,6 +121,7 @@ export const useAuthStore = defineStore('auth', () => {
                 localStorage.setItem('token', token.value)
                 axios.defaults.headers.common.Authorization = 'Bearer ' + token.value
                 return true
+
             } catch (e) {
                 clearUser()
                 storeError.setErrorMessages(e.response.data.message,
@@ -136,12 +138,14 @@ export const useAuthStore = defineStore('auth', () => {
 
 
     const restoreToken = async function () {
+        console.log('restoreToken')
         let storedToken = localStorage.getItem('token')
         if (storedToken) {
             try {
                 token.value = storedToken
                 axios.defaults.headers.common.Authorization = 'Bearer ' + token.value
                 const responseUser = await axios.get('users/me')
+                console.log('execucao users/me no restoreToken')
                 user.value = responseUser.data.data
                 repeatRefreshToken()
                 return true

@@ -21,7 +21,10 @@ const socket = io("http://localhost:8086");
 app.provide('socket', socket);
 
 // Default Axios configuration
+const serverBaseUrl = 'http://localhost/'
+app.provide('serverBaseUrl', serverBaseUrl) 
 axios.defaults.baseURL = 'http://localhost/api'
+
 
 // Register global components (e.g., error messages)
 app.component('ErrorMessage', ErrorMessage)

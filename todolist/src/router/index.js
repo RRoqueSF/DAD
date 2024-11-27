@@ -6,6 +6,7 @@ import HomeView from '@/views/HomeView.vue'
 import Login from '@/components/auth/Login.vue'
 import { useAuthStore } from '@/stores/auth'
 import Chat from '@/components/chats/Chat.vue'
+import Profile from '@/components/profile/Profile.vue'
 
 const router = createRouter({
   
@@ -21,6 +22,11 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: Login
+    },
+    {
+      path: '/profile',
+      name: 'profile',
+      component: Profile
     },
     {
       path: '/games',

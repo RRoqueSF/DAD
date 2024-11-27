@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import {
@@ -30,6 +30,12 @@ const cancel = () => {
 const login = () => {
 storeAuth.login(credentials.value)
 }
+
+onMounted(() => {
+  if (storeAuth.user) {
+    router.push({ name: 'home' }) // Redirect if already authenticated
+  }
+})
 </script>
 
 <template>
