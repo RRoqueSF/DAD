@@ -37,6 +37,10 @@ class Game extends Model
         'custom' => 'json',
     ];
 
+    public function isSinglePlayer()
+{
+    return $this->type === 'single';
+}
     /**
      * Relationships with other models.
      */

@@ -25,6 +25,7 @@ class User extends Authenticatable
         'email',
         'type',
         'nickname',
+        'password',
         'blocked',
         'brain_coins_balance',
         'photo_filename',

@@ -4,6 +4,11 @@ namespace App\Http\Controllers\api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Resources\UserResource;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Http\Requests\StoreUpdateUserRequest;
+use App\Http\Requests\RegisterRequest;
 
 class UserController extends Controller
 {
@@ -14,7 +19,7 @@ return new UserResource($request->user());
 
 
     // Show the authenticated user's profile
-    public function show()
+    public function show(request $request)
     {
         return response()->json([
             'status' => 'success',
@@ -22,31 +27,37 @@ return new UserResource($request->user());
         ]);
     }
 
+    public function store(RegisterRequest $request)
+{
+    // Hash the password
+    $hashedPassword = Hash::make($request->input('password'));
+
+    // Create the user with the hashed password
+    $user = User::create([
+        'name' => $request->input('name'),
+        'nickname' => $request->input('nickname'),
+        'email' => $request->input('email'),
+        'password' => $hashedPassword, // Use the hashed password here
+        'photo_url' => $request->input('photoUrl'),
+    ]);
+
+    // Return a response indicating success
+    return response()->json([
+        'message' => 'User successfully registered!',
+        'data' => $user,
+    ]);
+}
+    
+    
     // Update the authenticated user's profile
-    public function update(Request $request)
-    {
-        $user = Auth::user();
+    public function update(StoreUpdateUserRequest $request, User $user)
+{
+    $user->fill($request->validated());
+    $user->save();
 
-        $request->validate([
-            'email' => 'email|unique:users,email,' . $user->id,
-            'nickname' => 'string|max:255|unique:users,nickname,' . $user->id,
-            'password' => 'nullable|string|min:3',
-            'photo_filename' => 'nullable|string',
-            'name' => 'string|max:255',
-        ]);
-
-        $user->update($request->only('email', 'nickname', 'name', 'photo_filename'));
-
-        if ($request->password) {
-            $user->password = $request->password; // Automatically hashed in User model
-            $user->save();
-        }
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $user,
-        ]);
-    }
+    
+    return new UserResource($user);
+}
 
     // Delete the authenticated user's account
     public function destroy(Request $request)
