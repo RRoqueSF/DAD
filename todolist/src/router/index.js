@@ -7,6 +7,7 @@ import Login from '@/components/auth/Login.vue'
 import { useAuthStore } from '@/stores/auth'
 import Chat from '@/components/chats/Chat.vue'
 import Profile from '@/components/profile/Profile.vue'
+import Register from '@/components/auth/Register.vue'
 
 const router = createRouter({
   
@@ -24,7 +25,12 @@ const router = createRouter({
       component: Login
     },
     {
-      path: '/profile',
+      path: '/register',
+      name: 'register',
+      component: Register,
+    },
+    {
+      path: '/profile/:id',
       name: 'profile',
       component: Profile
     },
@@ -63,20 +69,21 @@ const router = createRouter({
 let handlingFirstRoute = true
 
 router.beforeEach(async (to, from, next) => {
-  const storeAuth = useAuthStore()
+  const storeAuth = useAuthStore();
 
   // Only handle the first route
   if (handlingFirstRoute) {
-    handlingFirstRoute = false
-    await storeAuth.restoreToken() // Restore token if necessary
+    handlingFirstRoute = false;
+    await storeAuth.restoreToken(); // Restore token if necessary
   }
 
-  // Prevent infinite redirection to login if already on the login page
-  if (!storeAuth.user && to.name !== 'login') {
-    next({ name: 'login' }) // Redirect to login if user is not authenticated
+  // Redirect to login if user is not authenticated and not on login/register routes
+  if (!storeAuth.user && to.name !== 'login' && to.name !== 'register') {
+    next({ name: 'login' }); // Redirect to login
   } else {
-    next() // Proceed to the requested route
+    next(); // Proceed to the requested route
   }
-})
+});
+
 
 export default router

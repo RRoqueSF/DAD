@@ -1,0 +1,125 @@
+<script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import axios from 'axios';
+
+const router = useRouter();
+
+// Registration form data
+const registrationData = ref({
+  name: '',
+  nickname: '',
+  email: '',
+  password: '',
+  photoUrl: '', // Optional avatar/photo URL
+});
+
+const errors = ref({});
+const loading = ref(false);
+
+// Handle registration submission
+const register = async () => {
+  console.log('Form submitted'); // Debugging log
+  loading.value = true; // Set loading state to true
+  try {
+    // Clear previous errors
+    errors.value = {};
+
+    // Debugging: log the data being sent
+    console.log('Registration data:', registrationData.value);
+
+    // Send data to the backend
+    const response = await axios.post('/users', registrationData.value);
+
+    // Debugging: log the response
+    console.log('Response:', response);
+
+    // Handle successful registration (e.g., redirect to login)
+    alert(response.data.message || 'Registration successful!');
+    router.push({ name: 'login' });
+  } catch (error) {
+    // Display validation errors
+    if (error.response && error.response.data.errors) {
+      errors.value = error.response.data.errors;
+    } else {
+      console.error('Registration failed:', error);
+    }
+  } finally {
+    loading.value = false; // Reset loading state
+  }
+};
+
+// Cancel button handler
+const cancel = () => {
+  router.back();
+};
+</script>
+
+<template>
+  <Card class="w-[450px] mx-auto my-8 p-4 px-8">
+    <CardHeader>
+      <CardTitle>Register</CardTitle>
+      <CardDescription>Create a new account by filling out the form below.</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <form @submit.prevent="register">
+        <div class="grid items-center w-full gap-4">
+          <div class="flex flex-col space-y-1.5">
+            <Label for="name">Name</Label>
+            <Input id="name" type="text" v-model="registrationData.name" placeholder="Enter your full name" />
+            <p v-if="errors.name" class="text-red-600 text-sm">{{ errors.name }}</p>
+          </div>
+          <div class="flex flex-col space-y-1.5">
+            <Label for="nickname">Nickname</Label>
+            <Input id="nickname" type="text" v-model="registrationData.nickname" placeholder="Enter your nickname" />
+            <p v-if="errors.nickname" class="text-red-600 text-sm">{{ errors.nickname }}</p>
+          </div>
+          <div class="flex flex-col space-y-1.5">
+            <Label for="email">Email</Label>
+            <Input id="email" type="email" v-model="registrationData.email" placeholder="Enter your email" />
+            <p v-if="errors.email" class="text-red-600 text-sm">{{ errors.email }}</p>
+          </div>
+          <div class="flex flex-col space-y-1.5">
+  <Label for="password">Password</Label>
+  <Input
+    id="password"
+    type="password"
+    v-model="registrationData.password"
+    placeholder="Enter your password (min 3 characters)"
+  />
+  <p v-if="errors.password" class="text-red-600 text-sm">{{ errors.password }}</p>
+</div>
+<div class="flex flex-col space-y-1.5">
+  <Label for="password_confirmation">Confirm Password</Label>
+  <Input
+    id="password_confirmation"
+    type="password"
+    v-model="registrationData.password_confirmation"
+    placeholder="Confirm your password"
+  />
+  <p v-if="errors.password_confirmation" class="text-red-600 text-sm">{{ errors.password_confirmation }}</p>
+</div>
+
+          <div class="flex flex-col space-y-1.5">
+            <Label for="photoUrl">Photo/Avatar URL (Optional)</Label>
+            <Input
+              id="photoUrl"
+              type="url"
+              v-model="registrationData.photoUrl"
+              placeholder="Paste a URL for your avatar"
+            />
+            <p v-if="errors.photoUrl" class="text-red-600 text-sm">{{ errors.photoUrl }}</p>
+          </div>
+        </div>
+        <Button type="submit" :disabled="loading.value">Register</Button>
+      </form>
+    </CardContent>
+    <CardFooter class="flex justify-between px-6 pb-6">
+      <Button variant="outline" @click="cancel">Cancel</Button>
+    </CardFooter>
+  </Card>
+</template>

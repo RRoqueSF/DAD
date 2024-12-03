@@ -9,26 +9,33 @@ const storeAuth = useAuthStore();
 
 const isEditing = ref(false);
 const updatedMessage = ref('');
+const localUser = ref({}); // Initialize localUser as an empty object
 
+// Fetch the profile data from the API
 const fetchProfile = async () => {
   try {
-    const response = await axios.get('/users/me');
-    storeAuth.value = response.data;
+    const response = await axios.get(`/users/${storeAuth.user.id}`);
+    storeAuth.user.value = response.data; // Store the data in the global state
+    localUser.value = { ...response.data }; // Create a local copy for editing (spread operator ensures copy)
   } catch (error) {
     console.error('Error fetching profile:', error);
   }
 };
 
+// Update the user profile
 const updateProfile = async () => {
   try {
-    const response = await axios.put('/users/me', storeAuth.value);
+    console.log('Dados enviados:', localUser.value); // Log the local user data before sending to the server
+    const response = await axios.put(`/users/${storeAuth.user.id}`, localUser.value); // Send the local copy to the server
     updatedMessage.value = response.data.message;
     isEditing.value = false;
+    storeAuth.user.value = { ...localUser.value }; // Update global store with the new data
   } catch (error) {
     console.error('Error updating profile:', error);
   }
 };
 
+// Fetch user data when the component is mounted
 onMounted(() => {
   fetchProfile();
 });
@@ -36,11 +43,11 @@ onMounted(() => {
 
 <template>
   <div class="max-w-4xl mx-auto mt-8 p-4 border rounded-lg shadow-lg">
-    <h1 class="text-2xl font-bold mb-4 text-center">{{storeAuth.userFirstLastName}} Profile</h1>
+    <h1 class="text-2xl font-bold mb-4 text-center">{{ storeAuth.userFirstLastName }} Profile</h1>
     <p v-if="storeAuth.userType === 'A'" class="text-xl font-semibold text-center text-gray-600">
-  Admin
-</p>
-<br>
+      Admin
+    </p>
+    <br>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
       <!-- Profile Picture -->
@@ -57,25 +64,33 @@ onMounted(() => {
         <div>
           <label class="block font-medium">Name</label>
           <Input
-            v-model="storeAuth.userFirstLastName"
+            v-model="localUser.name"
             :disabled="!isEditing"
-            placeholder="Enter your name"
+            :placeholder=[[storeAuth.user.name]]
           />
         </div>
         <div>
           <label class="block font-medium">Nickname</label>
           <Input
-            v-model="storeAuth.userNickname"
+            v-model="localUser.nickname"
             :disabled="!isEditing"
-            placeholder="Enter your nickname"
+            :placeholder="[[storeAuth.userNickname]]"
+          />
+        </div>
+        <div>
+          <label class="block font-medium">Email</label>
+          <Input
+            v-model="localUser.email"
+            :disabled="!isEditing"
+            :placeholder="[[storeAuth.userEmail]]"
           />
         </div>
         <div>
           <label class="block font-medium">Custom Data</label>
           <Input
-            v-model="storeAuth.userCustomData"
+            v-model="localUser.custom"
             :disabled="!isEditing"
-            placeholder="Add custom information"
+            :placeholder="[[storeAuth.customData]]"
           />
         </div>
       </div>
@@ -101,4 +116,3 @@ onMounted(() => {
     <p v-if="updatedMessage" class="mt-4 text-green-600">{{ updatedMessage }}</p>
   </div>
 </template>
-
