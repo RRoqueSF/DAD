@@ -15,13 +15,13 @@ class StoreUpdateUserRequest extends FormRequest
 
     public function rules()
     {
-        // Regras de validação
         return [
             'email' => 'email|unique:users,email,' . $this->user->id,
             'nickname' => 'string|max:255|unique:users,nickname,' . $this->user->id,
             'name' => 'string|max:255',
-            'photo_filename' => 'nullable|string',
+            'photo' => 'nullable|file|image',  // Ensure the photo is validated as an image
             'custom' => 'nullable|string',
         ];
     }
+    
 }

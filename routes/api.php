@@ -13,7 +13,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/users/me', [UserController::class , 'showMe']);
     Route::get('/users/{user}', [UserController::class, 'show']);    
     Route::put('/users/{user}', [UserController::class, 'update']);
-    Route::delete('/user', [UserController::class, 'destroy'])->name('user.destroy');
+    Route::delete('/users/{user}', [UserController::class, 'destroy']);
+    Route::patch('users/{user}/changePassword', [UserController::class,'update_password']);
     Route::post('/games', [GameController::class, 'startSinglePlayerGame']);
 
 
