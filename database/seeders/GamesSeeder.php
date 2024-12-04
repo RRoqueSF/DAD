@@ -83,6 +83,14 @@ class GamesSeeder extends Seeder
         // DB::table('games')->whereNot('status', 'E')->update(['winner_user_id' => null]);
         // $this->command->info("Clearing winner_user_id for non ended multiplayer games");
         DB::update('update games set winner_user_id = null where type = "S" OR (type = "M" and status <> "E")');
+
+        DB::update('update games set total_turns_winner = CASE
+                        WHEN board_id = 1 THEN 6 + ROUND(RAND() * 12)
+                        WHEN board_id = 2 THEN 8 + ROUND(RAND() * 16)
+                        ELSE 18 + ROUND(RAND() * 54)
+                    END
+                    where total_time is not null');
+
         $this->command->info("Games seeder - End");
     }
 

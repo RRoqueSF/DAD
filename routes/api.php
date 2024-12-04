@@ -12,7 +12,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/auth/refreshtoken', [AuthController::class, 'refreshToken']);
     Route::get('/users/me', [UserController::class , 'showMe']);
     Route::get('/users/{user}', [UserController::class, 'show']);    
-    Route::put('/users/{user}', [UserController::class, 'update']);
+    Route::patch('/users/{user}', [UserController::class, 'update']);
     Route::delete('/users/{user}', [UserController::class, 'destroy']);
     Route::patch('users/{user}/changePassword', [UserController::class,'update_password']);
     Route::post('/games', [GameController::class, 'startSinglePlayerGame']);

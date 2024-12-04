@@ -13,6 +13,7 @@ use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\UpdatePasswordRequest;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\UserDeleteRequest;
+use App\Services\Base64Services;
 
 class UserController extends Controller
 {
@@ -20,6 +21,14 @@ class UserController extends Controller
 {
 return new UserResource($request->user());
 }
+
+private function storeBase64AsFile(User $user, String $base64String)
+    {
+        $targetDir = storage_path('app/public/photos');
+        $newfilename = $user->id . "_" . rand(1000,9999);
+        $base64Service = new Base64Services();
+        return $base64Service->saveFile($base64String, $targetDir, $newfilename);
+    }
 public function index(Request $request){
 
     $userType = $request->userType;
@@ -60,62 +69,65 @@ public function update_password (UpdatePasswordRequest $request, User $user)
     }
 
     public function store(RegisterRequest $request)
-{
-    // Hash the password
-    $hashedPassword = Hash::make($request->input('password'));
-
-    // Create the user with the hashed password
-    $user = User::create([
-        'name' => $request->input('name'),
-        'nickname' => $request->input('nickname'),
-        'email' => $request->input('email'),
-        'password' => $hashedPassword, // Use the hashed password here
-        'photo_url' => $request->input('photoUrl'),
-    ]);
-
-    // Return a response indicating success
-    return response()->json([
-        'message' => 'User successfully registered!',
-        'data' => $user,
-    ]);
-}
+    {
+        // Hash the password
+        $hashedPassword = Hash::make($request->input('password'));
+    
+        // Initialize data for user creation
+        $dataToSave = $request->validated();
+        $base64ImagePhoto = $dataToSave["base64ImagePhoto"] ?? null;
+        unset($dataToSave["base64ImagePhoto"]);
+    
+        // Add hashed password to the data
+        $dataToSave['password'] = $hashedPassword;
+    
+        // Create the user
+        $user = User::create($dataToSave);
+    
+        // Handle the photo if provided
+        if ($base64ImagePhoto) {
+            $user->photo_filename = $this->storeBase64AsFile($user, $base64ImagePhoto);
+            $user->save();
+        }
+    
+        // Return a response indicating success
+        return response()->json([
+            'message' => 'User successfully registered!',
+            'data' => $user,
+        ]);
+    }
+    
     
     
 
 
 public function update(StoreUpdateUserRequest $request, User $user)
 {
-    // Update the user details
-    $user->fill($request->validated());
+    $dataToSave = $request->validated();
 
-    if ($request->hasFile('photo')) {
-        // Check if the user already has a photo and delete the old one if exists
-        if ($user->photo_filename) {
-            Storage::delete($user->photo_filename);
-        }
-    
-        if ($request->hasFile('photo')) {
-            // If the user already has a photo, delete it
-            if ($user->photo_filename) {
-                Storage::delete('public/photos/' . $user->photo_filename);
-            }
+    $base64ImagePhoto = array_key_exists("base64ImagePhoto", $dataToSave) ?
+        $dataToSave["base64ImagePhoto"] : ($dataToSave["base64ImagePhoto"] ?? null);
+    $deletePhotoOnServer = array_key_exists("deletePhotoOnServer", $dataToSave) && $dataToSave["deletePhotoOnServer"];
+    unset($dataToSave["base64ImagePhoto"]);
+    unset($dataToSave["deletePhotoOnServer"]);
 
-            // Store the new photo and update the user record
-            $path = $request->file('photo')->store('public/photos/');
-            $user->photo_filename = basename($path); // Save the file name
-            $user->save();
+    $user->fill($dataToSave);
+
+
+    if ($user->photo_filename && ($deletePhotoOnServer || $base64ImagePhoto)) {
+        if (Storage::exists('public/fotos/' . $user->photo_filename)) {
+            Storage::delete('public/fotos/' . $user->photo_filename);
         }
+        $user->photo_filename = null;
     }
-    // Save the updated user data
+
+    if ($base64ImagePhoto) {
+        $user->photo_filename = $this->storeBase64AsFile($user, $base64ImagePhoto);
+    }
+
     $user->save();
-
-    // Return the updated user data, including the photo URL
-    return response()->json([
-        'message' => 'Profile updated successfully.',
-        'photo_url' => asset(Storage::url($user->photo_filename)), // Return the URL for the uploaded photo
-    ]);
+    return new UserResource($user);
 }
-
 
 
     // Delete the authenticated user's account
