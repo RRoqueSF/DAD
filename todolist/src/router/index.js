@@ -10,6 +10,7 @@ import Profile from '@/components/profile/Profile.vue'
 import Register from '@/components/auth/Register.vue'
 import ChangePassword from '@/components/auth/ChangePassword.vue'
 import AccountDelete from '@/components/auth/AccountDelete.vue'
+import SelectSingleGame from '@/components/games/SelectSingleGame.vue'
 
 const router = createRouter({
   
@@ -45,6 +46,11 @@ const router = createRouter({
       path: '/accountDelete',
       name: 'accountDelete',
       component: AccountDelete,
+    },
+    {
+      path: '/games',
+      name: 'selectSingleGame',
+      component: SelectSingleGame
     },
     {
       path: '/games',

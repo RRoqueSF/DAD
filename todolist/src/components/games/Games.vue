@@ -18,7 +18,7 @@ onMounted(() => {
 
 <template>
     <div class="pt-4">
-        <RouterLink :to="{ name: 'createGame' }" class="mt-4 w-36 h-10 flex items-center justify-center text-sm font-bold rounded-md 
+        <RouterLink :to="{ name: 'selectSingleGame' }" class="mt-4 w-36 h-10 flex items-center justify-center text-sm font-bold rounded-md 
                                     border border-transparent bg-blue-600 text-white 
                                     hover:bg-blue-700 focus:outline-none focus:bg-blue-700">
             New Game
