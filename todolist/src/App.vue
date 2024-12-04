@@ -10,7 +10,6 @@ import coinUrl from '@/assets/coin.png'
 
 const storeGame = useGameStore();
 const storeAuth = useAuthStore();
-
 const alertDialog = useTemplateRef('alert-dialog');
 provide('alertDialog', alertDialog);
 const showDropdown = ref(false);
@@ -110,12 +109,34 @@ const logout = () => {
         Profile
       </RouterLink>
     </li>
+    <li>
+    <RouterLink
+          :to="{ name: 'changePassword', params: { id: storeAuth.user.id } }"
+        class="block px-4 py-2 hover:bg-gray-100 cursor-pointer"
+        @click="showDropdown = false"
+      >
+        Change Password
+      </RouterLink>
+    </li>
           <li
             @click="logout"
             class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
           >
             Logout
             </li>
+            <li>
+            <router-link 
+
+  v-if="storeAuth.userType !== 'A'" 
+  
+ :to="{ name: 'accountDelete' }"
+  class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+   @click="showDropdown = false"
+>
+  Delete Account
+</router-link>
+</li>
+
           </ul>
         </div>
         

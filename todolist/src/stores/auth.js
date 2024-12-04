@@ -135,7 +135,19 @@ export const useAuthStore = defineStore('auth', () => {
         return intervalToRefreshToken
     }
     // Add this to ensure the token is set when app initializes
-
+    async function changePassword(credentials) {
+        if (user.value.id< 0) {
+            throw 'Anonymous users cannot change the password!';
+        }
+    
+        try {
+            await axios.patch(`users/${user.value.id}/changePassword`, credentials);
+            return true;
+        } catch (error) {
+            throw error;
+        }
+    }
+    
 
     const restoreToken = async function () {
         console.log('restoreToken')
@@ -165,6 +177,6 @@ export const useAuthStore = defineStore('auth', () => {
     return {
         user, userName, userNickname, userEmail, userType, userFirstLastName, 
         userPhotoUrl, userBlockedStatus, userBrainCoinsBalance, userCustomData,
-        login, logout, restoreToken,
+        login, logout, restoreToken, changePassword,
     }
 })

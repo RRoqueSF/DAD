@@ -8,6 +8,8 @@ import { useAuthStore } from '@/stores/auth'
 import Chat from '@/components/chats/Chat.vue'
 import Profile from '@/components/profile/Profile.vue'
 import Register from '@/components/auth/Register.vue'
+import ChangePassword from '@/components/auth/ChangePassword.vue'
+import AccountDelete from '@/components/auth/AccountDelete.vue'
 
 const router = createRouter({
   
@@ -33,6 +35,16 @@ const router = createRouter({
       path: '/profile/:id',
       name: 'profile',
       component: Profile
+    },
+    {
+      path: '/changePassword',
+      name: 'changePassword',
+      component: ChangePassword 
+    },
+    {
+      path: '/accountDelete',
+      name: 'accountDelete',
+      component: AccountDelete,
     },
     {
       path: '/games',

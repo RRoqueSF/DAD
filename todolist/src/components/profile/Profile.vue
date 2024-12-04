@@ -9,14 +9,15 @@ const storeAuth = useAuthStore();
 
 const isEditing = ref(false);
 const updatedMessage = ref('');
-const localUser = ref({}); // Initialize localUser as an empty object
+const localUser = ref({});
+
 
 // Fetch the profile data from the API
 const fetchProfile = async () => {
   try {
     const response = await axios.get(`/users/${storeAuth.user.id}`);
-    storeAuth.user.value = response.data; // Store the data in the global state
-    localUser.value = { ...response.data }; // Create a local copy for editing (spread operator ensures copy)
+    storeAuth.user.value = response.data;
+    localUser.value = { ...response.data };
   } catch (error) {
     console.error('Error fetching profile:', error);
   }
@@ -26,6 +27,7 @@ const fetchProfile = async () => {
 const updateProfile = async () => {
   try {
     console.log('Dados enviados:', localUser.value); // Log the local user data before sending to the server
+
     const response = await axios.put(`/users/${storeAuth.user.id}`, localUser.value); // Send the local copy to the server
     updatedMessage.value = response.data.message;
     isEditing.value = false;
@@ -39,6 +41,11 @@ const updateProfile = async () => {
 onMounted(() => {
   fetchProfile();
 });
+
+// Handle photo file selection
+const handlePhotoChange = (event) => {
+  selectedFile.value = event.target.files[0];
+};
 </script>
 
 <template>
@@ -51,11 +58,17 @@ onMounted(() => {
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
       <!-- Profile Picture -->
-      <div>
+      <div class="flex flex-col items-center">
         <img
           :src="storeAuth.userPhotoUrl"
           alt="Profile Picture"
-          class="w-32 h-32 rounded-full border shadow"
+          class="w-32 h-32 rounded-full border shadow mb-4"
+        />
+        <input
+          v-if="isEditing"
+          type="file"
+          @change="handlePhotoChange"
+          class="file-input"
         />
       </div>
 
@@ -66,7 +79,7 @@ onMounted(() => {
           <Input
             v-model="localUser.name"
             :disabled="!isEditing"
-            :placeholder=[[storeAuth.user.name]]
+            :placeholder="storeAuth.user.name"
           />
         </div>
         <div>
@@ -74,7 +87,7 @@ onMounted(() => {
           <Input
             v-model="localUser.nickname"
             :disabled="!isEditing"
-            :placeholder="[[storeAuth.userNickname]]"
+            :placeholder="storeAuth.userNickname"
           />
         </div>
         <div>
@@ -82,7 +95,7 @@ onMounted(() => {
           <Input
             v-model="localUser.email"
             :disabled="!isEditing"
-            :placeholder="[[storeAuth.userEmail]]"
+            :placeholder="storeAuth.userEmail"
           />
         </div>
         <div>
@@ -90,7 +103,7 @@ onMounted(() => {
           <Input
             v-model="localUser.custom"
             :disabled="!isEditing"
-            :placeholder="[[storeAuth.customData]]"
+            :placeholder="storeAuth.customData"
           />
         </div>
       </div>
