@@ -144,6 +144,8 @@ public function update(StoreUpdateUserRequest $request, User $user)
         ) {
             return response()->json(['status' => 'error', 'message' => 'Invalid confirmation'], 403);
         }
+        $user->brain_coins_balance = 0;
+        $user->save();
 
         // Soft delete the user
         $user->delete();
