@@ -22,6 +22,7 @@ class Game extends Model
         'status',
         'board_id',
         'custom',
+        'total_turns_winner',
     ];
 
     /**

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\api\AuthController;
 use App\Http\Controllers\api\UserController;
 use App\Http\Controllers\api\GameController;
+use App\Http\Controllers\api\BoardController;
 
 
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -15,6 +16,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::patch('/users/{user}', [UserController::class, 'update']);
     Route::delete('/users/{user}', [UserController::class, 'destroy']);
     Route::patch('users/{user}/changePassword', [UserController::class,'update_password']);
+    Route::get('/boards', [BoardController::class, 'index']);
     Route::post('/games', [GameController::class, 'startSinglePlayerGame']);
 
 
