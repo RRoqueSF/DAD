@@ -10,7 +10,18 @@ const storeAuth = useAuthStore();
 const isEditing = ref(false);
 const updatedMessage = ref('');
 const localUser = ref({});
+const selectedFile = ref(null); // Store the selected file
+const base64Image = ref('');
 
+// Convert file to base64
+const toBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+    reader.readAsDataURL(file);
+  });
+};
 
 // Fetch the profile data from the API
 const fetchProfile = async () => {
@@ -26,9 +37,13 @@ const fetchProfile = async () => {
 // Update the user profile
 const updateProfile = async () => {
   try {
-    console.log('Dados enviados:', localUser.value); // Log the local user data before sending to the server
+    // Add base64 image if a file is selected
+    if (selectedFile.value) {
+      base64Image.value = await toBase64(selectedFile.value);
+      localUser.value.base64ImagePhoto = base64Image.value; // Include the base64 image in the user object
+    }
 
-    const response = await axios.put(`/users/${storeAuth.user.id}`, localUser.value); // Send the local copy to the server
+    const response = await axios.patch(`/users/${storeAuth.user.id}`, localUser.value); // Use PATCH to send the updated data
     updatedMessage.value = response.data.message;
     isEditing.value = false;
     storeAuth.user.value = { ...localUser.value }; // Update global store with the new data
@@ -43,7 +58,7 @@ onMounted(() => {
 });
 
 // Handle photo file selection
-const handlePhotoChange = (event) => {
+const handlePhotoChange = async (event) => {
   selectedFile.value = event.target.files[0];
 };
 </script>

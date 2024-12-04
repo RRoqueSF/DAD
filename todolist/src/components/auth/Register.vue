@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import axios from 'axios';
 
+// Initialize Vue Router
 const router = useRouter();
 
 // Registration form data
@@ -15,16 +16,42 @@ const registrationData = ref({
   nickname: '',
   email: '',
   password: '',
-  photoUrl: '', // Optional avatar/photo URL
+  password_confirmation: '',
+  base64ImagePhoto: '', // Base64 image for photo upload
 });
 
+// Error and loading states
 const errors = ref({});
 const loading = ref(false);
 
+// File and base64 processing
+const selectedFile = ref(null);
+
+// Convert file to base64
+const toBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+    reader.readAsDataURL(file);
+  });
+};
+
+// Handle file selection
+const handlePhotoChange = async (event) => {
+  selectedFile.value = event.target.files[0];
+  if (selectedFile.value) {
+    try {
+      registrationData.value.base64ImagePhoto = await toBase64(selectedFile.value);
+    } catch (error) {
+      console.error('Error converting file to base64:', error);
+    }
+  }
+};
+
 // Handle registration submission
 const register = async () => {
-  console.log('Form submitted'); // Debugging log
-  loading.value = true; // Set loading state to true
+  loading.value = true;
   try {
     // Clear previous errors
     errors.value = {};
@@ -38,7 +65,7 @@ const register = async () => {
     // Debugging: log the response
     console.log('Response:', response);
 
-    // Handle successful registration (e.g., redirect to login)
+    // Handle successful registration
     alert(response.data.message || 'Registration successful!');
     router.push({ name: 'login' });
   } catch (error) {
@@ -68,51 +95,51 @@ const cancel = () => {
     <CardContent>
       <form @submit.prevent="register">
         <div class="grid items-center w-full gap-4">
+          <!-- Name Field -->
           <div class="flex flex-col space-y-1.5">
             <Label for="name">Name</Label>
             <Input id="name" type="text" v-model="registrationData.name" placeholder="Enter your full name" />
             <p v-if="errors.name" class="text-red-600 text-sm">{{ errors.name }}</p>
           </div>
+
+          <!-- Nickname Field -->
           <div class="flex flex-col space-y-1.5">
             <Label for="nickname">Nickname</Label>
             <Input id="nickname" type="text" v-model="registrationData.nickname" placeholder="Enter your nickname" />
             <p v-if="errors.nickname" class="text-red-600 text-sm">{{ errors.nickname }}</p>
           </div>
+
+          <!-- Email Field -->
           <div class="flex flex-col space-y-1.5">
             <Label for="email">Email</Label>
             <Input id="email" type="email" v-model="registrationData.email" placeholder="Enter your email" />
             <p v-if="errors.email" class="text-red-600 text-sm">{{ errors.email }}</p>
           </div>
-          <div class="flex flex-col space-y-1.5">
-  <Label for="password">Password</Label>
-  <Input
-    id="password"
-    type="password"
-    v-model="registrationData.password"
-    placeholder="Enter your password (min 3 characters)"
-  />
-  <p v-if="errors.password" class="text-red-600 text-sm">{{ errors.password }}</p>
-</div>
-<div class="flex flex-col space-y-1.5">
-  <Label for="password_confirmation">Confirm Password</Label>
-  <Input
-    id="password_confirmation"
-    type="password"
-    v-model="registrationData.password_confirmation"
-    placeholder="Confirm your password"
-  />
-  <p v-if="errors.password_confirmation" class="text-red-600 text-sm">{{ errors.password_confirmation }}</p>
-</div>
 
+          <!-- Password Field -->
           <div class="flex flex-col space-y-1.5">
-            <Label for="photoUrl">Photo/Avatar URL (Optional)</Label>
-            <Input
-              id="photoUrl"
-              type="url"
-              v-model="registrationData.photoUrl"
-              placeholder="Paste a URL for your avatar"
+            <Label for="password">Password</Label>
+            <Input id="password" type="password" v-model="registrationData.password" placeholder="Enter your password" />
+            <p v-if="errors.password" class="text-red-600 text-sm">{{ errors.password }}</p>
+          </div>
+
+          <!-- Password Confirmation -->
+          <div class="flex flex-col space-y-1.5">
+            <Label for="password_confirmation">Confirm Password</Label>
+            <Input id="password_confirmation" type="password" v-model="registrationData.password_confirmation" placeholder="Confirm your password" />
+            <p v-if="errors.password_confirmation" class="text-red-600 text-sm">{{ errors.password_confirmation }}</p>
+          </div>
+
+          <!-- Photo Upload -->
+          <div class="flex flex-col space-y-1.5">
+            <Label for="photo">Profile Photo (Optional)</Label>
+            <input
+              id="photo"
+              type="file"
+              @change="handlePhotoChange"
+              class="file-input"
             />
-            <p v-if="errors.photoUrl" class="text-red-600 text-sm">{{ errors.photoUrl }}</p>
+            <p v-if="errors.base64ImagePhoto" class="text-red-600 text-sm">{{ errors.base64ImagePhoto }}</p>
           </div>
         </div>
         <Button type="submit" :disabled="loading.value">Register</Button>
