@@ -1,18 +1,20 @@
 <script setup>
-import { ref, computed, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, reactive, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { initializeGame, flipTile, stopTimer, startTimer, timer } from '@/stores/gameUtils.js';
+import { useGameStore } from '@/stores/game';
+import { useAuthStore } from '@/stores/auth';
+import axios from 'axios';
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 
-// Accessing query parameters
 const cols = parseInt(route.query.cols);
 const rows = parseInt(route.query.rows);
 
 const tiles = ref([]);
 const totalTiles = computed(() => cols * rows);
-console.log(totalTiles.value);
 
 const firstTile = ref(null);
 const secondTile = ref(null);
@@ -20,38 +22,103 @@ const isProcessing = ref(false);
 const gameWon = ref(false);
 const showPopup = ref(false);
 const isGameStarted = ref(false);
+let newGame = null;
 
-// Initialize the game and assign tiles
+const gameStore = useGameStore();
+
+const loading = ref(true);  // Add loading state
+
+// Initialize the game
 tiles.value = initializeGame(totalTiles.value);
 
 const gridColumns = computed(() => Math.max(cols, rows));
 const gridRows = computed(() => Math.min(cols, rows));
+const gBoardId = (rows, cols) => {
+  if (rows === 4 && cols === 3) return 1;
+  if (rows === 4 && cols === 4) return 2;
+  if (rows === 6 && cols === 6) return 3;
+};
 
-const handleFlipTile = (tile) => {
+const gameState = reactive({
+  created_user_id: authStore.user.id,
+  winner_user_id: null,
+  board_id: gBoardId(rows, cols),
+  type: 'S',
+  began_at: null,
+  ended_at: null,
+  status: 'PE', // Pre-game state
+  custom: null,
+  total_turns_winner: 0,
+  total_time: 0,
+});
+
+// Function to create the game state (POST request)
+const createGameState = async () => {
+  try {
+    const response = await axios.post('/games', gameState);
+    newGame = await response.data;
+    console.log(newGame.game.id);
+    gameStore.currentGame = newGame;
+    loading.value = false;  // Set loading to false once the game is created
+    return newGame;
+  } catch (error) {
+    console.error('Failed to create game state:', error);
+    loading.value = false;  // Set loading to false even if there's an error
+    return null;
+  }
+};
+
+// Function to update the game state (PUT request)
+const updateGameState = async () => {
+  try {
+    await axios.put(`/games/${newGame.game.id}`, gameState);
+  } catch (error) {
+    console.error('Failed to update game state:', error);
+  }
+};
+
+const handleFlipTile = async (tile) => {
   if (isProcessing.value || gameWon.value) return;
 
   if (!isGameStarted.value) {
-    isGameStarted.value = true; 
-    startTimer(); // Start the timer
+    isGameStarted.value = true;
+    gameState.began_at = new Date();
+    gameState.status = 'PL'; // Mark game as in progress
+    await updateGameState(); // Update game state to "in progress"
+    startTimer(); // Start timer
   }
 
   flipTile(
     tile,
     firstTile,
     secondTile,
-    (processing) => (isProcessing.value = processing),
-    () => {
+    (processing) => {
+      isProcessing.value = processing;
+    },
+    async () => {
+      // On match
       if (tiles.value.every((t) => t.isMatched)) {
-        gameWon.value = true;
         stopTimer();
+        gameWon.value = true;
+        gameState.ended_at = new Date();
+        gameState.status = 'E'; // Mark game as completed
+        gameState.winner_user_id = authStore.user.id;
+        gameState.total_time = timer.value;
 
+        await updateGameState(); // Update game state to "completed"
         setTimeout(() => {
           showPopup.value = true;
         }, 500);
       }
+
+      gameState.total_turns_winner++; // Increment turn count
       isProcessing.value = false;
     },
-    () => (isProcessing.value = false)
+    () => {
+      // On mismatch
+      gameState.total_turns_winner++;
+      isProcessing.value = false;
+    }
   );
 };
 
@@ -59,12 +126,34 @@ const resetGame = () => {
   tiles.value = initializeGame(totalTiles.value);
   gameWon.value = false;
   showPopup.value = false;
-  isGameStarted.value = false; 
+  isGameStarted.value = false;
   stopTimer();
   timer.value = 0;
+  gameState.began_at = null;
+  gameState.ended_at = null;
+  gameState.status = 'PE';
+  gameState.total_turns_winner = 0;
+  gameState.total_time = 0;
 };
 
-onBeforeUnmount(() => {
+onMounted(async () => {
+  const boardSize = `${cols}x${rows}`;
+  const newGame = await createGameState(); // Create a new game state
+
+  if (!newGame) {
+    alert('Failed to initialize the game.');
+    router.push('/'); // Redirect if game creation fails
+  } else {
+    gameStore.currentGame = newGame; // Store current game
+  }
+});
+
+onBeforeUnmount(async () => {
+  if (gameStore.currentGame && gameState.status !== 'C') {
+    stopTimer();
+    gameState.status = 'I'; // Mark as interrupted
+    await updateGameState(); // Update game state to "interrupted"
+  }
   resetGame();
 });
 
@@ -73,12 +162,18 @@ router.beforeEach((to, from) => {
     resetGame();
   }
 });
-
 </script>
+
 
 
 <template>
   <div class="container mx-auto p-6">
+    <!-- Loading Spinner -->
+    <div v-if="loading" class="loading-overlay">
+      <div class="spinner"></div>
+      <p>Loading...</p>
+    </div>
+
     <!-- Title Section -->
     <div
       :class="[
@@ -238,4 +333,31 @@ router.beforeEach((to, from) => {
     height: 60px;
   }
 }
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.spinner {
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 </style>

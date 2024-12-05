@@ -15,10 +15,30 @@ export const useGameStore = defineStore('game', () => {
     const currentGame = ref(null);
     const games = ref([]);
 
-    const setCurrentGame = (game) => {
-        currentGame.value = game;
+    const createGame = async (boardSize) => {
+        try {
+            const response = await axios.post('/games', {
+                custom: JSON.stringify({ board_size: boardSize }),
+            });
+            const newGame = response.data.game;
+            currentGame.value = newGame; // Store the created game
+            return newGame;
+        } catch (error) {
+            handleError(error, 'Failed to create the game.');
+            return null;
+        }
     };
 
+    const updateGameStatus = async (gameId, status, details = {}) => {
+        try {
+            await axios.patch(`api/games/${gameId}`, {
+                status,
+                ...details,
+            });
+        } catch (error) {
+            handleError(error, 'Failed to update the game status.');
+        }
+    };
     // Centralized error handler
     const handleError = (e, defaultMessage) => {
         const errorMessage = e.response?.data?.message || e.message || defaultMessage;
@@ -50,30 +70,6 @@ export const useGameStore = defineStore('game', () => {
         games.value = await fetchGameData(`games/${userId}`);
     };
 
-    const insertGame = async (game) => {
-        const newGame = await fetchGameData('games', 'post', game);
-        if (newGame) {
-            games.value.push(newGame);
-            toast({ description: `Game #${newGame.id} of type "${newGame.type}" was created!` });
-            return newGame;
-        }
-        return false;
-    };
-
-    const updateGame = async (game) => {
-        const index = games.value.findIndex((g) => g.id === game.id);
-        if (index === -1) {
-            storeError.setErrorMessages('Game not found!', [], 404, 'Error updating game!');
-            return false;
-        }
-        const updatedGame = await fetchGameData(`games/${game.id}`, 'put', game);
-        if (updatedGame) {
-            games.value[index] = updatedGame;
-            toast({ description: 'Game has been updated correctly!' });
-            return updatedGame;
-        }
-        return false;
-    };
 
     const totalGames = computed(() => games.value.length);
 
@@ -115,8 +111,8 @@ export const useGameStore = defineStore('game', () => {
         listGamesIncludingNull,
         listGamesToFilter,
         fetchGames,
+        updateGameStatus,
         fetchCurrentGame,
-        insertGame,
-        updateGame,
+        createGame,
     };
 });
