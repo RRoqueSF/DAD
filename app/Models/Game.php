@@ -17,8 +17,11 @@ class Game extends Model
     protected $fillable = [
         'created_user_id',
         'winner_user_id',
+        'total_time',
         'board_id',
         'type',
+        'began_at',
+        'ended_at',
         'status',
         'board_id',
         'custom',
@@ -34,14 +37,11 @@ class Game extends Model
         'began_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
-        'total_time' => 'decimal:2',
+        'began_at' => 'datetime',
+        'ended_at' => 'datetime',
         'custom' => 'json',
     ];
 
-    public function isSinglePlayer()
-{
-    return $this->type === 'single';
-}
     /**
      * Relationships with other models.
      */
