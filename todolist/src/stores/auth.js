@@ -11,6 +11,8 @@ export const useAuthStore = defineStore('auth', () => {
     const storeError = useErrorStore()
     const user = ref(null)
     const token = ref('')
+    const users = ref([]);
+    const userDetails = ref(null);
     
     const userName = computed(() => {
         return user.value ? user.value.name : ''
@@ -174,9 +176,63 @@ export const useAuthStore = defineStore('auth', () => {
             axios.defaults.headers.common.Authorization = `Bearer ${token.value}`
         }
 
+        const fetchUsers = async (queryParams = {}) => {
+            try {
+                storeError.resetMessages();
+                const response = await axios.get('users', { params: queryParams });
+                users.value = response.data.data;
+                return response.data;
+            } catch (error) {
+                storeError.setErrorMessages(
+                    error.response?.data?.message || 'Failed to fetch users',
+                    error.response?.data?.errors || [],
+                    error.response?.status || 500
+                );
+                throw error;
+            }
+        };
+        const totalUsers = computed(() => users.value.length);
+    
+        // Get a single user's details
+        const getUser = async (userId) => {
+            try {
+                storeError.resetMessages();
+                const response = await axios.get(`users/${userId}`);
+                userDetails.value = response.data.data;
+                return userDetails.value;
+            } catch (error) {
+                storeError.setErrorMessages(
+                    error.response?.data?.message || 'Failed to fetch user details',
+                    error.response?.data?.errors || [],
+                    error.response?.status || 500
+                );
+                throw error;
+            }
+        };
+    
+        // Update an existing user
+        const updateUser = async (userId, userData) => {
+            try {
+                storeError.resetMessages();
+                const response = await axios.put(`users/${userId}`, userData);
+                const index = users.value.findIndex((user) => user.id === userId);
+                if (index !== -1) {
+                    users.value[index] = response.data.data; // Update the local state
+                }
+                return response.data.data;
+            } catch (error) {
+                storeError.setErrorMessages(
+                    error.response?.data?.message || 'Failed to update user',
+                    error.response?.data?.errors || [],
+                    error.response?.status || 500
+                );
+                throw error;
+            }
+        };
+
     return {
         user, userName, userNickname, userEmail, userType, userFirstLastName, 
         userPhotoUrl, userBlockedStatus, userBrainCoinsBalance, userCustomData,
-        login, logout, restoreToken, changePassword,
+        login, logout, restoreToken, changePassword,  users, fetchUsers, getUser, updateUser, totalUsers
     }
 })

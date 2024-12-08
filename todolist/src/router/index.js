@@ -11,6 +11,9 @@ import Register from '@/components/auth/Register.vue'
 import ChangePassword from '@/components/auth/ChangePassword.vue'
 import AccountDelete from '@/components/auth/AccountDelete.vue'
 import SelectSingleGame from '@/components/games/SelectSingleGame.vue'
+import Users from '@/components/users/Users.vue'  
+import CreateAdmin from '@/components/auth/CreateAdmin.vue'
+
 
 const router = createRouter({
   
@@ -58,6 +61,11 @@ const router = createRouter({
       component: Games
     },
     {
+      path: '/users',
+      name: 'users',
+      component: Users
+    },
+    {
       path: '/games/:id',
       name: 'updateGame',
       component: GameUpdate,
@@ -72,7 +80,14 @@ const router = createRouter({
       path: '/chats',
       name: 'chat',
       component: Chat,
-    },       
+    },
+    {
+      path: '/admCreation',
+      name: 'admCreation',
+      component: CreateAdmin,
+    },  
+        
+
     {
       path: '/about',
       name: 'about',

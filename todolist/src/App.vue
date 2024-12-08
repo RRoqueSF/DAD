@@ -23,6 +23,7 @@ const toggleDropdown = () => {
 console.log(storeAuth.userBrainCoinsBalance);
 
 const logout = () => {
+  showDropdown.value = false;
   alertDialog.value.open(
     logoutConfirmed,
     'Logout confirmation?',
@@ -64,6 +65,14 @@ const logout = () => {
         activeClass="underline underline-offset-4 decoration-gray-300"
       >
         My Games
+      </RouterLink>
+      <RouterLink
+       v-if="storeAuth.userType === 'A'"
+        :to="{ name: 'users' }"
+        class="hover:text-gray-300 font-medium"
+        activeClass="underline underline-offset-4 decoration-gray-300"
+      >
+        User Management
       </RouterLink>
 
       <span class="flex font-medium align-items-right" >balance: {{ storeAuth.userBrainCoinsBalance}} &nbsp
@@ -109,6 +118,15 @@ const logout = () => {
         Profile
       </RouterLink>
     </li>
+    <RouterLink
+       v-if="storeAuth.userType === 'A'"
+        :to="{ name: 'admCreation' }"
+        class="hover:text-gray-300 font-medium"
+        activeClass="underline underline-offset-4 decoration-gray-300"
+         @click="showDropdown = false"
+      >
+         Admin Creation
+      </RouterLink>
     <li>
     <RouterLink
           :to="{ name: 'changePassword', params: { id: storeAuth.user.id } }"
