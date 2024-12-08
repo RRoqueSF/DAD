@@ -14,6 +14,7 @@ use App\Http\Requests\UpdatePasswordRequest;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\UserDeleteRequest;
 use App\Services\Base64Services;
+use Illuminate\Support\Facades\Gate;
 
 class UserController extends Controller
 {
@@ -31,11 +32,11 @@ private function storeBase64AsFile(User $user, String $base64String)
     }
 public function index(Request $request){
 
-    $userType = $request->userType;
+    $userType = $request->type;
     $userQuery = User::query();
 
     if ($userType != null)
-        $userQuery->where('user_type', $userType);
+        $userQuery->where('type', $userType);
 
     if ($request->paginate == '0')
         return UserResource::collection($userQuery->orderBy('name', 'asc')->get());
@@ -46,9 +47,14 @@ public function index(Request $request){
     if ($blocked != null)
         $userQuery->where('blocked', $blocked);
 
-    if ($order != null)
-        $userQuery->orderBy('name', $order);
-    
+       // Apply ordering logic
+       if ($order === 'desc') {
+        $userQuery->orderBy('created_at', 'desc'); // Most recent first
+    } elseif ($order === 'asc') {
+        $userQuery->orderBy('created_at', 'asc'); // Oldest first
+    } else {
+        $userQuery->orderBy('id', $order ?? 'asc');
+    }
     
     return UserResource::collection($userQuery->paginate(15));
 }
@@ -133,7 +139,7 @@ public function update(StoreUpdateUserRequest $request, User $user)
     // Delete the authenticated user's account
     public function destroy(UserDeleteRequest $request, User $user)
     {
-
+        
         $request->validate([
             'confirmation' => 'required|string',
         ]);

@@ -6,12 +6,15 @@ use App\Http\Controllers\api\AuthController;
 use App\Http\Controllers\api\UserController;
 use App\Http\Controllers\api\GameController;
 use App\Http\Controllers\api\BoardController;
+use App\Http\Controllers\api\AdminController;
 
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::post('/auth/refreshtoken', [AuthController::class, 'refreshToken']);
     Route::get('/users/me', [UserController::class , 'showMe']);
+    Route::get('/users', [UserController::class , 'index']);
+
     Route::get('/users/{user}', [UserController::class, 'show']);    
     Route::patch('/users/{user}', [UserController::class, 'update']);
     Route::delete('/users/{user}', [UserController::class, 'destroy']);
@@ -19,6 +22,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/boards', [BoardController::class, 'index']);
     Route::post('/games', [GameController::class, 'startSinglePlayerGame']);
 
+    Route::delete('/admins/{user}', [AdminController::class, 'destroy']);
+    Route::post('/admins', [AdminController::class, 'store']);
 
 
     Route::get('/games/{created_user_id}', [GameController::class, 'index']);
